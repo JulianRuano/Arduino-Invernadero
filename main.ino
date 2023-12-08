@@ -5,18 +5,13 @@
 #include "StateMachineLib.h"    
 #include "AsyncTaskLib.h"   
 #include "DHT.h" 
-#define BUZZER 13  
-#define PIN A5  
-#define SENSOR_TYPE DHT11          
-#define CELLPHOTO A0   
-
+#define BUZZER 13            
+  
 
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 const int redPin = 8;  
 const int greenPin = 7; 
-const int bluePin = 6;
-const float gammaValue = 0.7;  
-const float resistanceRL10Value = 50;  
+const int bluePin = 6;  
 
 
 unsigned int beginingTime = 0;
@@ -50,48 +45,46 @@ void color(unsigned char red, unsigned char green, unsigned char blue) {
 
 
 StateMachine stateMachine(5, 8);
-int trackCondition = 0;      /**< Variable para el trackeo de una condición. */
-
+int conditionRunway = 0;
 
 
 Input input;  
 
 enum State {
-    initialState = 0,   
-    blockedState = 1,    
-    monitorTHState = 2,   
-    alarmState = 3,   
-    monitorLightState = 4, 
+    intState = 0,   
+    blocked = 1,    
+    monitorTH = 2,   
+    alarm = 3,   
+    monitorLight = 4, 
 };
 
 
-AsyncTask timeOutTask5(5000, false, []() { fnTimeOut5(); });  
-AsyncTask timeOutTask3(3000, false, []() { fnTimeOut6(); });  
-AsyncTask timeOutTask6(6000, false, []() { fnTimeOut7(); });  
-AsyncTask initTask(50, true, []() { fnInit(); });            
-AsyncTask monitorTHTask(500, true, []() { fnMonitorTH(); });  
-AsyncTask monitorLightTask(200, true, []() { fnMonitorLuz(); });
-AsyncTask alarmTask(50, true, []() { fnAlarma(); });         
+AsyncTask initTask(50, true, []() { funtionInit(); });            
+AsyncTask monitorTHTask(500, true, []() { funtionMonitorTH(); });  
+AsyncTask monitorLightTask(200, true, []() { funtionMonitorLuz(); });
+AsyncTask alarmTask(50, true, []() { funtionAlarm(); });         
+AsyncTask task5(5000, false, []() { funtionTimeOut5(); });  
+AsyncTask task3(3000, false, []() { funtionTimeOut6(); });  
+AsyncTask task6(6000, false, []() { funtionTimeOut7(); });  
 
-
-void fnTimeOut5()
+void funtionTimeOut5()
 {
     input = TimeOut5;    
-    trackCondition = 0;   
+    conditionRunway = 0;   
 }
 
 
-void fnTimeOut6()
+void funtionTimeOut6()
 {
     input = TimeOut6;    
-    trackCondition = 0;  
+    conditionRunway = 0;  
 }
 
 
-void fnTimeOut7()
+void funtionTimeOut7()
 {
     input = TimeOut7;    /**< Asigna el timeout de 7 segundos como el último input de usuario. */
-    trackCondition = 0;   /**< Resetea la condición. */
+    conditionRunway = 0;   /**< Resetea la condición. */
 }
 
 
@@ -138,7 +131,7 @@ void outputAlarm()
 }
 
 
-void fnInit()
+void funtionInit()
 {
     lcd.clear();
     counterPasswordNumbers = 0;
@@ -177,57 +170,57 @@ void inputBlocked()
 {
     color(255, 0, 0);
     lcd.print("BLOQUEO INMINENTE");
-    timeOutTask5.SetIntervalMillis(5000);
-    timeOutTask5.Start();
+    task5.SetIntervalMillis(5000);
+    task5.Start();
 }
 
 
-void fnAlarma() {
-    while (trackCondition == 0)
+void funtionAlarm() {
+    while (conditionRunway == 0)
     {
         lcd.clear();
         color(255, 0, 0);
         lcd.print("ALERTA ATENCION");
         tone(BUZZER, 1000, 5000);
-        timeOutTask6.Start();
-        trackCondition++;
+        task6.Start();
+        conditionRunway++;
     }
 }
 
 
 void setupStateMachine()
 {
-    /* Transiciones */
-    stateMachine.AddTransition(initialState, blockedState, []() { return input == InBlocked; });
-    stateMachine.AddTransition(initialState, monitorTHState, []() { return input == InMonitorTH; });
-    stateMachine.AddTransition(blockedState, initialState, []() { return input == TimeOut5; });
-    stateMachine.AddTransition(monitorTHState, alarmState, []() { return input == InAlarm; });
-    stateMachine.AddTransition(monitorTHState, monitorLightState, []() { return input == TimeOut5; });
-    stateMachine.AddTransition(alarmState, monitorTHState, []() { return input == TimeOut7; });
-    stateMachine.AddTransition(monitorLightState, alarmState, []() { return input == InAlarm; });
-    stateMachine.AddTransition(monitorLightState, monitorTHState, []() { return input == TimeOut6; });
+ 
+    stateMachine.AddTransition(intState, blocked, []() { return input == InBlocked; });
+    stateMachine.AddTransition(intState, monitorTH, []() { return input == InMonitorTH; });
+    stateMachine.AddTransition(blocked, intState, []() { return input == TimeOut5; });
+    stateMachine.AddTransition(monitorTH, alarm, []() { return input == InAlarm; });
+    stateMachine.AddTransition(monitorTH, monitorLight, []() { return input == TimeOut5; });
+    stateMachine.AddTransition(alarm, monitorTH, []() { return input == TimeOut7; });
+    stateMachine.AddTransition(monitorLight, alarm, []() { return input == InAlarm; });
+    stateMachine.AddTransition(monitorLight, monitorTH, []() { return input == TimeOut6; });
 
-    /* Acciones */
-    stateMachine.SetOnEntering(initialState, inputInit);
-    stateMachine.SetOnEntering(blockedState, inputBlocked);
-    stateMachine.SetOnEntering(monitorTHState, inputMonitorTH);
-    stateMachine.SetOnEntering(alarmState, inputAlarm);
-    stateMachine.SetOnEntering(monitorLightState, inputMonitorLight);
-    stateMachine.SetOnLeaving(initialState, []() { outputInit(); });
-    stateMachine.SetOnLeaving(monitorTHState, []() { outputMonitorTH(); });
-    stateMachine.SetOnLeaving(alarmState, []() { outputAlarm(); });
-    stateMachine.SetOnLeaving(monitorLightState, []() { outputMonitorLight(); });
+
+    stateMachine.SetOnEntering(intState, inputInit);
+    stateMachine.SetOnEntering(blocked, inputBlocked);
+    stateMachine.SetOnEntering(monitorTH, inputMonitorTH);
+    stateMachine.SetOnEntering(alarm, inputAlarm);
+    stateMachine.SetOnEntering(monitorLight, inputMonitorLight);
+    stateMachine.SetOnLeaving(intState, []() { outputInit(); });
+    stateMachine.SetOnLeaving(monitorTH, []() { outputMonitorTH(); });
+    stateMachine.SetOnLeaving(alarm, []() { outputAlarm(); });
+    stateMachine.SetOnLeaving(monitorLight, []() { outputMonitorLight(); });
 }
 
 
-DHT dht(PIN, SENSOR_TYPE); 
+DHT dht(A5, DHT11); 
 const long MAX_VALUES_NUM = 5;
 AverageValue<long> averageTemperatureValue(MAX_VALUES_NUM); 
 AverageValue<long> averageHumidityValue(MAX_VALUES_NUM); 
 AverageValue<long> cleanAverageValue(MAX_VALUES_NUM); 
 
 
-void fnMonitorTH()
+void funtionMonitorTH()
 {
     noTone(BUZZER);
     color(0, 0, 0);
@@ -238,7 +231,7 @@ void fnMonitorTH()
     averageHumidityValue = cleanAverageValue;
     counterPasswordNumbers = 0;
     dht.begin();
-    while (trackCondition == 0)
+    while (conditionRunway == 0)
     {
         float h = dht.readHumidity();
         float t = dht.readTemperature();
@@ -277,9 +270,9 @@ void fnMonitorTH()
             {
                 currentTime = millis();
                 counterPasswordCorrects++;
-                timeOutTask5.SetIntervalMillis(5000 - (currentTime - beginingTime));
-                timeOutTask5.Start();
-                trackCondition++;
+                task5.SetIntervalMillis(5000 - (currentTime - beginingTime));
+                task5.Start();
+                conditionRunway++;
             }
             counterPasswordNumbers = 0;
         }
@@ -290,19 +283,19 @@ void fnMonitorTH()
 AverageValue<long> averageLightValue(MAX_VALUES_NUM);
 
 
-void fnMonitorLuz()
+void funtionMonitorLuz()
 {   
     beginingTime = millis();
     lcd.clear();
     counterPasswordNumbers = 0;
     averageLightValue = cleanAverageValue;
-    while (trackCondition == 0)
+    while (conditionRunway == 0)
     {
         lcd.setCursor(0, 0);
-        int analogValue = analogRead(CELLPHOTO);
+        int analogValue = analogRead(A0);
         float voltage = analogValue / 1024.0 * 5.0;
         float resistance = 2000.0 * voltage / (1.0 - voltage / 5.0);
-        float light = pow(resistanceRL10Value * 1e3 * pow(10, gammaValue) / resistance, (1.0 / gammaValue));
+        float light = pow(50 * 1e3 * pow(10, 0.7) / resistance, (1.0 / 0.7));
         lcd.print("Luz: ");
         lcd.print(analogValue);
         averageLightValue.push(light);
@@ -315,9 +308,9 @@ void fnMonitorLuz()
                 break;
             } else {
                 currentTime = millis();
-                timeOutTask3.SetIntervalMillis(3000 - (currentTime - beginingTime));
-                timeOutTask3.Start();
-                trackCondition++;
+                task3.SetIntervalMillis(3000 - (currentTime - beginingTime));
+                task3.Start();
+                conditionRunway++;
             }
         }
     }
@@ -339,16 +332,16 @@ void setup()
     setupStateMachine();	
 
 
-    stateMachine.SetState(initialState, false, true);
+    stateMachine.SetState(intState, false, true);
 }
 
 
 void loop() 
 {
     monitorLightTask.Update();
-    timeOutTask5.Update();
-    timeOutTask3.Update();
-    timeOutTask6.Update();
+    task5.Update();
+    task3.Update();
+    task6.Update();
     alarmTask.Update();
     initTask.Update();
     monitorTHTask.Update();
