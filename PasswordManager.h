@@ -19,9 +19,9 @@ enum Input
 
 extern char password[];
 extern int passwordNumbersArray[4];
-extern int counterPasswordNumbers;
-extern int counterPasswordMistakes;
-extern int counterPasswordCorrects;
+extern int digitCount;
+extern int numberAttempts;
+extern int passwordCorrects;
 
 extern Keypad keypad;
 extern LiquidCrystal lcd;
@@ -29,5 +29,6 @@ extern LiquidCrystal lcd;
 void accessGranted();
 void accessDenied();
 void inputInit();
+void clearAndPrintPrompt(const char *promptLabel);
 
 #endif // PASSWORD_MANAGER_H
