@@ -10,6 +10,5 @@ extern unsigned int currentTime;
 extern short int light;
 extern int conditionRunway;
 
-void assignColor(unsigned char red, unsigned char green, unsigned char blue);
 
 #endif // UTILITIES_H

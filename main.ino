@@ -10,7 +10,13 @@
   
 
 StateMachine stateMachine(5, 8);
-Input input;  
+Input input;
+
+void assignColor(unsigned char red, unsigned char green, unsigned char blue) {
+    analogWrite(LED_RED, red);
+    analogWrite(LED_BLUE, blue);
+    analogWrite(LED_GREEN, green);
+}
 
 enum State {
     intState = 0,   
