@@ -1,17 +1,17 @@
 #include "PasswordManager.h"
+#include "Utilities.h"
 
 extern Input input;
 extern AsyncTask initTask;
 extern int numberAttempts;
-extern LiquidCrystal lcd;
+
 
 char password[] = {'1', '2', '3', 'D'}; 
 int passwordNumbersArray[4];                 
 int digitCount = 0;                    
 int numberAttempts = 0;            
 int passwordCorrects = 0;   
-//LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
-LiquidCrystal lcd(12, 11, 10, 9, 8, 7);
+
 
 const byte ROWS = 4;
 const byte COLS = 4;
@@ -29,10 +29,6 @@ byte rowPins[ROWS] = {22, 23, 24, 25};
 byte colPins[COLS] = {26, 27, 28, 29};
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
-void clearAndPrintPrompt(const char *promptLabel) {
-    lcd.clear();
-    lcd.print(promptLabel);
-}
 
 void accessGranted() {
     clearAndPrintPrompt("Bienvenido");
@@ -101,5 +97,3 @@ void inputInit() {
 
     initTask.Stop(); 
 }
-
-
