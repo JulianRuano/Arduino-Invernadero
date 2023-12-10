@@ -2,7 +2,7 @@
 
 ###
 
-<p align="left">El sistema se basa en una máquina de estados finitos implementada con la biblioteca "StateMachineLib.h" en Arduino. <br>La máquina de estados tiene varios estados y transiciones que gestionan el funcionamiento del invernadero inteligente.</p>
+<p align="left">El sistema se basa en una máquina de estados finitos implementada con la biblioteca "StateMachineLib.h" en Arduino.</p>
 
 ###
 
